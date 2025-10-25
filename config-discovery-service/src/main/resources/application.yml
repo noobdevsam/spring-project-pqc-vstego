@@ -2,5 +2,4 @@ spring:
     application:
         name: config-discovery-service
     config:
-        import:
-            optional: configserver:http://${CONFIG_SERVER_HOST:localhost}:${CONFIG_SERVER_PORT:8086}
+        import: configserver:http://${CONFIG_SERVER_HOST:localhost}:${CONFIG_SERVER_PORT:8086}
