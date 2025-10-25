@@ -11,3 +11,13 @@ spring:
                     github:
                         client-id: ${GITHUB_CLIENT_ID}
                         client-secret: ${GITHUB_CLIENT_SECRET}
+
+    # 2. Session Management with Redis
+    session:
+        store-type: redis
+        redis:
+            namespace: "pqcstego:sessions"
+    data:
+        redis:
+            host: ${REDIS_HOST:localhost}
+            port: ${REDIS_PORT:6379}
