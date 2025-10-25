@@ -21,3 +21,17 @@ spring:
         redis:
             host: ${REDIS_HOST:localhost}
             port: ${REDIS_PORT:6379}
+
+    # 3. Gateway Service Configuration
+    cloud:
+        gateway:
+            server:
+                webflux:
+                    discovery:
+                        locator:
+                            enabled: true
+                    routes:
+                        -   id: user-service
+                            uri: "lb://USER-SERVICE"
+                            predicates:
+                                - Path=/api/v1/users/**,  /api/v1/keys/**
