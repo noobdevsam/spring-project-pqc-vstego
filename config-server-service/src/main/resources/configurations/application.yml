@@ -1,0 +1,18 @@
+spring:
+    cloud:
+        config:
+            override-system-properties: true
+
+    threads:
+        virtual:
+            enabled: true
+
+eureka:
+    instance:
+        hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+        prefer-ip-address: true
+    client:
+        service-url:
+            defaultZone: http://${eureka.instance.hostname}:8761/eureka
+            register-with-eureka: true
+            fetch-registry: true
