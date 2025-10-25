@@ -3,7 +3,7 @@ eureka:
         hostname: ${EUREKA_SERVER_HOST:localhost}
     client:
         service-url:
-            defaultZone: http://${eureka.instance.hostname:localhost}:${server.port:8761}/eureka/
+            defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
         register-with-eureka: false
         fetch-registry: false
 
