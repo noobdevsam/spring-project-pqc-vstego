@@ -1,7 +1,7 @@
 spring:
     cloud:
         config:
-            override-system-properties: true
+            override-system-properties: false
 
     threads:
         virtual:
