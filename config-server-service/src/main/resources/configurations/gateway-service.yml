@@ -1,0 +1,51 @@
+server:
+    port: 8080
+
+spring:
+    threads:
+        virtual:
+            enabled: true
+
+    # 1. GitHub OAuth2 Client Configuration
+    security:
+        oauth2:
+            client:
+                registration:
+                    github:
+                        client-id: ${GITHUB_CLIENT_ID}
+                        client-secret: ${GITHUB_CLIENT_SECRET}
+
+    # 2. Session Management with Redis
+    session:
+        store-type: redis
+        redis:
+            namespace: "pqcstego:sessions"
+    data:
+        redis:
+            host: ${REDIS_HOST:localhost}
+            port: ${REDIS_PORT:6379}
+
+    # 3. Gateway Service Configuration
+    cloud:
+        gateway:
+            server:
+                webflux:
+                    discovery:
+                        locator:
+                            enabled: true
+                    routes:
+                        -   id: user-service-route
+                            uri: "lb://USER-SERVICE"
+                            predicates:
+                                - Path=/api/v1/users/**,  /api/v1/keys/**
+                        -   id: orchestration-service-route
+                            uri: "lb://ORCHESTRATION-SERVICE"
+                            predicates:
+                                - Path=/api/v1/estimate, /api/v1/encode, /api/v1/job/**, /api/v1/files/**
+                        # Others services can be added similarly
+
+    # 4. Eureka (Discovery Service) Configuration
+eureka:
+    client:
+        service-url:
+            defaultZone: http://${EUREKA_HOST:localhost}:${EUREKA_PORT:8761}/eureka
