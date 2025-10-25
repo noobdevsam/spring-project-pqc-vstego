@@ -1,0 +1,13 @@
+spring:
+    threads:
+        virtual:
+            enabled: true
+
+    # 1. GitHub OAuth2 Client Configuration
+    security:
+        oauth2:
+            client:
+                registration:
+                    github:
+                        client-id: ${GITHUB_CLIENT_ID}
+                        client-secret: ${GITHUB_CLIENT_SECRET}
