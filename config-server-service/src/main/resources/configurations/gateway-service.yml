@@ -39,3 +39,10 @@ spring:
                             uri: "lb://ORCHESTRATION-SERVICE"
                             predicates:
                                 - Path=/api/v1/estimate, /api/v1/encode, /api/v1/job/**, /api/v1/files/**
+                        # Others services can be added similarly
+
+    # 4. Eureka (Discovery Service) Configuration
+eureka:
+    client:
+        service-url:
+            defaultZone: http://${EUREKA_HOST:localhost}:${EUREKA_PORT:8761}/eureka
