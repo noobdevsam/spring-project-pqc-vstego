@@ -38,4 +38,4 @@ spring:
                         -   id: orchestration-service-route
                             uri: "lb://ORCHESTRATION-SERVICE"
                             predicates:
-                                - Path=/api/v1/orchestrations/**, /api/v1/uploads/**
+                                - Path=/api/v1/estimate, /api/v1/encode, /api/v1/job/**, /api/v1/files/**
