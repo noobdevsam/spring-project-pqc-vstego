@@ -3,3 +3,13 @@ spring:
         name: gateway-service
     config:
         import: configserver:http://${CONFIG_SERVER_HOST:localhost}:${CONFIG_SERVER_PORT:8086}
+
+    cloud:
+        gateway:
+            server:
+                webmvc:
+                    routes:
+                        -   id: user-service-route
+                            uri: "lb://user-service"
+                            predicates:
+                                - Path=/api/v1/users/**, /api/v1/keys/**
