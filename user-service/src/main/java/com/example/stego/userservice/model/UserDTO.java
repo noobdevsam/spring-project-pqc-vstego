@@ -1,4 +1,4 @@
-package com.example.stego.userservice;
+package com.example.stego.userservice.model;
 
 import com.example.stego.userservice.document.User;
 
