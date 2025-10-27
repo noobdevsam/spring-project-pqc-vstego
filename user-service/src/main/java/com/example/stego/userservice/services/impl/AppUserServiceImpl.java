@@ -1,6 +1,7 @@
 package com.example.stego.userservice.services.impl;
 
 import com.example.stego.userservice.model.UserDTO;
+import com.example.stego.userservice.repo.UserRepo;
 import com.example.stego.userservice.services.AppUserService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,12 @@ import java.util.List;
 
 @Service
 public class AppUserServiceImpl implements AppUserService {
+
+    private final UserRepo userRepo;
+
+    public AppUserServiceImpl(UserRepo userRepo) {
+        this.userRepo = userRepo;
+    }
 
     @Override
     public UserDTO findOrCreateUser(OAuth2AuthenticationToken authenticationToken) {
