@@ -17,6 +17,8 @@ public class AppUserServiceImpl implements AppUserService {
         this.userRepo = userRepo;
     }
 
+    // Finds an existing user or creates a new one based on OAuth2 authentication token
+    // This is a core logic in the SRS file
     @Override
     public UserDTO findOrCreateUser(OAuth2AuthenticationToken authenticationToken) {
         return null;
