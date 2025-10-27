@@ -1,5 +1,6 @@
 package com.example.stego.userservice.services.impl;
 
+import com.example.stego.userservice.document.User;
 import com.example.stego.userservice.model.UserDTO;
 import com.example.stego.userservice.repo.UserRepo;
 import com.example.stego.userservice.services.AppUserService;
@@ -22,12 +23,22 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     public UserDTO findOrCreateUser(OAuth2AuthenticationToken authenticationToken) {
         var principal = authenticationToken.getPrincipal();
-        var attributes = pirncipal.getAttributes();
+        var attributes = principal.getAttributes();
         var githubId = String.valueOf(attributes.get("id"));
         var existingUser = userRepo.findByGithubId(githubId);
 
+        if (existingUser.isPresent()) {
+            return UserDTO.fromUserToUserDTO(existingUser.get());
+        } else {
+            // Create new user
+            var username = (String) attributes.get("login");
+            var avatarUrl = (String) attributes.get("avatar_url");
 
-        return null;
+            var newUser = new User(githubId, username, avatarUrl);
+            userRepo.save(newUser);
+
+            return UserDTO.fromUserToUserDTO(newUser);
+        }
     }
 
     @Override
