@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AppUserServiceImpl implements AppUserService {
@@ -41,8 +42,12 @@ public class AppUserServiceImpl implements AppUserService {
         }
     }
 
+    // Retrieves all registered users
     @Override
     public List<UserDTO> findAllUsers() {
-        return List.of();
+        return userRepo.findAll()
+                .stream()
+                .map(UserDTO::fromUserToUserDTO)
+                .collect(Collectors.toList());
     }
 }
