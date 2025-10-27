@@ -21,6 +21,12 @@ public class AppUserServiceImpl implements AppUserService {
     // This is a core logic in the SRS file
     @Override
     public UserDTO findOrCreateUser(OAuth2AuthenticationToken authenticationToken) {
+        var principal = authenticationToken.getPrincipal();
+        var attributes = pirncipal.getAttributes();
+        var githubId = String.valueOf(attributes.get("id"));
+        var existingUser = userRepo.findByGithubId(githubId);
+
+
         return null;
     }
 
