@@ -35,4 +35,67 @@ public class User {
         this.avatarUrl = avatarUrl;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getGithubId() {
+        return githubId;
+    }
+
+    public void setGithubId(String githubId) {
+        this.githubId = githubId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public String getPqcPublicKey() {
+        return pqcPublicKey;
+    }
+
+    public void setPqcPublicKey(String pqcPublicKey) {
+        this.pqcPublicKey = pqcPublicKey;
+    }
+
+    public String getPqcPrivateKey() {
+        return pqcPrivateKey;
+    }
+
+    public void setPqcPrivateKey(String pqcPrivateKey) {
+        this.pqcPrivateKey = pqcPrivateKey;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getKeyLastUpdatedAt() {
+        return keyLastUpdatedAt;
+    }
+
+    public void setKeyLastUpdatedAt(Instant keyLastUpdatedAt) {
+        this.keyLastUpdatedAt = keyLastUpdatedAt;
+    }
 }
