@@ -1,6 +1,7 @@
 server:
     port: 8081
 
+spring:
     threads:
         virtual:
             enabled: true
@@ -25,6 +26,7 @@ server:
                 registration:
                     github:
                         client-id: ${GITHUB_CLIENT_ID}
+                        client-secret: ${GITHUB_CLIENT_SECRET}
 
 eureka:
     client:
