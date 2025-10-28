@@ -1,6 +1,7 @@
 package com.example.stego.orchestrationservice.services.impl;
 
 import com.example.stego.orchestrationservice.document.Job;
+import com.example.stego.orchestrationservice.model.KafkaDecodeRequest;
 import com.example.stego.orchestrationservice.model.KafkaEncodeRequest;
 import com.example.stego.orchestrationservice.model.KafkaJobCompletion;
 import com.example.stego.orchestrationservice.model.enums.JobStatus;
@@ -94,7 +95,27 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Map<String, String> createDecodeJob(OAuth2User principal, MultipartFile stegoFile, String recipientPrivateKey) {
-        return Map.of();
+        var userId = getGithubId(principal);
+
+        // 1. Upload stego-video to GridFS
+        var stegoFileId = uploadFile(stegoFile, userId);
+
+        // 2. Create and save Job entity
+        var job = new Job();
+        job.setJobId(UUID.randomUUID().toString());
+        job.setJobType(JobType.DECODE);
+        job.setJobStatus(JobStatus.PENDING);
+        job.setSenderUserId(userId);
+        job.getStorage().setInputFileGridFsId(stegoFileId);
+        jobRepository.save(job);
+
+        // 3. Publish to Kafka
+        KafkaDecodeRequest request = new KafkaDecodeRequest(
+                job.getJobId(), stegoFileId, recipientPrivateKey
+        );
+        kafkaProducerService.sendDecodeRequest(request);
+
+        return Map.of("jobId", job.getJobId());
     }
 
     @Override
