@@ -1,0 +1,5 @@
+spring:
+    application:
+        name: orchestration-service
+    config:
+        import: configserver:http://${CONFIG_SERVER_HOST:localhost}:${CONFIG_SERVER_PORT:8086}
