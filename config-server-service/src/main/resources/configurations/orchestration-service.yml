@@ -46,8 +46,8 @@ services:
     video-service-url: "http://video-processing-service"
 
 # 6. Kafka Topic Names
-#pqcstego:
-#    topics:
-#        request-encode: job.request.encode
-#        request-decode: job.request.decode
-#        job-completion: job.completion
+pqcstego:
+    topics:
+        request-encode: job.request.encode
+        request-decode: job.request.decode
+        job-completion: job.completion
