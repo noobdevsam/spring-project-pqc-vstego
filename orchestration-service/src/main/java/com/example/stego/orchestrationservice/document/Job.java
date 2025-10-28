@@ -4,6 +4,7 @@ import com.example.stego.orchestrationservice.model.StorageDetails;
 import com.example.stego.orchestrationservice.model.enums.JobStatus;
 import com.example.stego.orchestrationservice.model.enums.JobType;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -13,6 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 @Data
+@EqualsAndHashCode
 @Document(collection = "jobs")
 public class Job {
 
