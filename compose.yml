@@ -31,6 +31,54 @@ services:
             # Port for host machine to connect (e.g. with a UI tool)
             - "9094:9094"
             # Note: Port 9092 is used for inter-container communication and is not exposed to the host
+        environment:
+            # KRaft Configuration
+
+            # (1) Define roles. 'broker,controller' is a combined-mode node.
+            KAFKA_NODE_ID: 1
+            KAFKA_PROCESS_ROLES: 'broker,controller'
+
+            # (2) Generate a unique Cluster ID. Run this command once:
+            # docker run --rm confluentinc/cp-kafka:latest kafka-storage random-uuid
+            # Paste the generated UUID here.
+            KAFKA_CLUSTER_ID: '9AfExVHeSbeQNnjrAwy_eg'
+
+            # (3) Define the KRaft controller quorum.
+            # Format is: <node_id>@<hostname>:<controller_port>
+            KAFKA_CONTROLLER_QUORUM_VOTERS: '1@pqc-kafka:9093'
+
+            # -------------------------------------------------
+            # Listener Configuration
+            # -------------------------------------------------
+
+            # (4) Define listeners for Kafka.
+            # PLAINTEXT: For internal communication (service-to-service)
+            # CONTROLLER: For KRaft internal control plane
+            # EXTERNAL: For your host machine (e.g., UI, local testing)
+            KAFKA_LISTENERS: 'PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094'
+
+            # (5) Map listener names to security protocols.
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT'
+
+            # (6) Define how clients connect from different networks.
+            KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://pqc-kafka:9092,EXTERNAL://localhost:9094'
+
+            # (7) Specify which listeners are used for what.
+            KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+            KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+
+            # -------------------------------------------------
+            # Dev-Friendly Settings (SRS Compliance)
+            # -------------------------------------------------
+
+            # Allow service to create topics automatically
+            KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+
+            # Settings for single-node cluster (no replication)
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+            KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
         volumes:
             - kafka_data:/var/lib/kafka/data
 
