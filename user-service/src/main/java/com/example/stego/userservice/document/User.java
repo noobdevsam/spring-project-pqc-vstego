@@ -20,12 +20,8 @@ public class User {
     private String username; // As per SRS 3.3
     private String avatarUrl; // As per SRS 3.3
 
-    private String pqcPublicKey;
-    private String pqcPrivateKey;
-
     @CreatedDate
-    private Instant createdAt; // As per SRS 3.3
-    private Instant keyLastUpdatedAt;
+    private Instant createdAt;
 
     public User() {
     }
@@ -68,22 +64,6 @@ public class User {
         this.avatarUrl = avatarUrl;
     }
 
-    public String getPqcPublicKey() {
-        return pqcPublicKey;
-    }
-
-    public void setPqcPublicKey(String pqcPublicKey) {
-        this.pqcPublicKey = pqcPublicKey;
-    }
-
-    public String getPqcPrivateKey() {
-        return pqcPrivateKey;
-    }
-
-    public void setPqcPrivateKey(String pqcPrivateKey) {
-        this.pqcPrivateKey = pqcPrivateKey;
-    }
-
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -92,19 +72,11 @@ public class User {
         this.createdAt = createdAt;
     }
 
-    public Instant getKeyLastUpdatedAt() {
-        return keyLastUpdatedAt;
-    }
-
-    public void setKeyLastUpdatedAt(Instant keyLastUpdatedAt) {
-        this.keyLastUpdatedAt = keyLastUpdatedAt;
-    }
-
     @Override
     public final boolean equals(Object o) {
         if (!(o instanceof User user)) return false;
 
-        return Objects.equals(id, user.id) && Objects.equals(githubId, user.githubId) && Objects.equals(username, user.username) && Objects.equals(avatarUrl, user.avatarUrl) && Objects.equals(pqcPublicKey, user.pqcPublicKey) && Objects.equals(pqcPrivateKey, user.pqcPrivateKey) && Objects.equals(createdAt, user.createdAt) && Objects.equals(keyLastUpdatedAt, user.keyLastUpdatedAt);
+        return Objects.equals(id, user.id) && Objects.equals(githubId, user.githubId) && Objects.equals(username, user.username) && Objects.equals(avatarUrl, user.avatarUrl) && Objects.equals(createdAt, user.createdAt);
     }
 
     @Override
@@ -113,10 +85,7 @@ public class User {
         result = 31 * result + Objects.hashCode(githubId);
         result = 31 * result + Objects.hashCode(username);
         result = 31 * result + Objects.hashCode(avatarUrl);
-        result = 31 * result + Objects.hashCode(pqcPublicKey);
-        result = 31 * result + Objects.hashCode(pqcPrivateKey);
         result = 31 * result + Objects.hashCode(createdAt);
-        result = 31 * result + Objects.hashCode(keyLastUpdatedAt);
         return result;
     }
 
@@ -127,10 +96,7 @@ public class User {
                 ", githubId='" + githubId + '\'' +
                 ", username='" + username + '\'' +
                 ", avatarUrl='" + avatarUrl + '\'' +
-                ", pqcPublicKey='" + pqcPublicKey + '\'' +
-                ", pqcPrivateKey='" + pqcPrivateKey + '\'' +
                 ", createdAt=" + createdAt +
-                ", keyLastUpdatedAt=" + keyLastUpdatedAt +
                 '}';
     }
 }
