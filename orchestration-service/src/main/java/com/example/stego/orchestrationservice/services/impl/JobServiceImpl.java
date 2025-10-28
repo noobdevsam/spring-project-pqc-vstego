@@ -15,6 +15,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -22,6 +23,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
@@ -175,7 +177,28 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    @KafkaListener(
+            topics = "${pqcstego.topics.job-completion}",
+            groupId = "${orchestration-consumer-group}",
+            containerFactory = "KafkaListenerContainerFactory"
+    )
     public void handleJobCompletion(KafkaJobCompletion completion) {
+        log.info("Received job completion status for jobId: {}", completion.getJobId());
 
+        var job = jobRepository.findByJobId(completion.getJobId())
+                .orElseThrow(() -> new RuntimeException("Received completion for unknown jobId: " + completion.getJobId()));
+
+        job.setJobStatus(completion.getStatus());
+
+        if (completion.getStatus() == JobStatus.COMPLETED) {
+            job.getStorage().setOutputFileGridFsId(completion.getOutputFileGridFsId());
+            job.setStatusMessage("Job completed successfully.");
+        } else {
+            job.setErrorMessage(completion.getErrorMessage());
+            job.setStatusMessage("Job failed.");
+        }
+
+        job.setCompletedAt(Instant.now());
+        jobRepository.save(job);
     }
 }
