@@ -73,6 +73,14 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public String getPrivateKey(OAuth2AuthenticationToken authenticationToken) {
-        return "";
+        var githubId = String.valueOf(authenticationToken.getPrincipal().getAttributes().get("id"));
+        var user = userRepo.findByGithubId(githubId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found on DB"));
+
+        if (user.getPqcPrivateKey() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User has not generated PQC key pair yet");
+        }
+
+        return user.getPqcPrivateKey();
     }
 }
