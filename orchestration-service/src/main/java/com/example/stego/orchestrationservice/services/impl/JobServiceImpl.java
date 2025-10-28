@@ -128,7 +128,22 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Map<String, Object> estimateCapacity(MultipartFile carrierFile) {
-        return Map.of();
+        // This proxies the request to the video-processing-service
+        // as it's the only service with ffprobe installed.
+        try {
+            var body = new LinkedMultiValueMap<String, Object>();
+            body.add("file", carrierFile.getResource());
+
+            return videoServiceRestClient.post()
+                    .uri(VIDEO_SERVICE_ESTIMATE_URI)
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(body)
+                    .retrieve()
+                    .body(Map.class);
+        } catch (Exception e) {
+            log.error("Capacity estimation failed", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Capacity estimation failed.");
+        }
     }
 
     @Override
