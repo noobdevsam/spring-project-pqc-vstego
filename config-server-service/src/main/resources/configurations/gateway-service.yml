@@ -37,7 +37,7 @@ spring:
                         -   id: user-service-route
                             uri: "lb://USER-SERVICE"
                             predicates:
-                                - Path=/api/v1/users/**,  /api/v1/keys/**
+                                - Path=/api/v1/users/**
                         -   id: orchestration-service-route
                             uri: "lb://ORCHESTRATION-SERVICE"
                             predicates:
