@@ -1,7 +1,10 @@
 package com.example.stego.orchestrationservice.services.impl;
 
 import com.example.stego.orchestrationservice.document.Job;
+import com.example.stego.orchestrationservice.model.KafkaEncodeRequest;
 import com.example.stego.orchestrationservice.model.KafkaJobCompletion;
+import com.example.stego.orchestrationservice.model.enums.JobStatus;
+import com.example.stego.orchestrationservice.model.enums.JobType;
 import com.example.stego.orchestrationservice.repos.JobRepository;
 import com.example.stego.orchestrationservice.services.JobService;
 import com.example.stego.orchestrationservice.services.KafkaProducerService;
@@ -19,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -62,7 +66,30 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Map<String, String> createEncodeJob(OAuth2User principal, MultipartFile carrierFile, MultipartFile secretFile, String recipientUserId, String senderPrivateKey) {
-        return Map.of();
+        var userId = getGithubId(principal);
+
+        // 1. Upload files to GridFS via FileService
+        var carrierFileId = uploadFile(carrierFile, userId);
+        var secretFileId = uploadFile(secretFile, userId);
+
+        // 2. Create and save Job entity (SRS FR-B-4.2)
+        var job = new Job();
+        job.setJobId(UUID.randomUUID().toString());
+        job.setJobType(JobType.ENCODE);
+        job.setJobStatus(JobStatus.PENDING);
+        job.setSenderUserId(userId);
+        job.setRecipientUserId(recipientUserId);
+        job.getStorage().setInputFileGridFsId(carrierFileId);
+        job.getStorage().setSecretFileGridFsId(secretFileId);
+        jobRepository.save(job);
+
+        // 3. Publish to Kafka
+        var request = new KafkaEncodeRequest(
+                job.getJobId(), carrierFileId, secretFileId, recipientUserId, senderPrivateKey
+        );
+        kafkaProducerService.sendEncodeRequest(request);
+
+        return Map.of("jobId", job.getJobId());
     }
 
     @Override
