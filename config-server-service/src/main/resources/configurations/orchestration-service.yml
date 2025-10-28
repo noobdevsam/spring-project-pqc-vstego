@@ -40,10 +40,10 @@ eureka:
         service-url:
             defaultZone: http://${EUREKA_SERVER_HOST:localhost}:8761/eureka/
 
-## 5. Service URLs
-#services:
-#    file-service-url: "http://file-service" # "file-service" is the Eureka app name
-#    video-service-url: "http://video-processing-service"
+# 5. Service URLs
+services:
+    file-service-url: "http://file-service" # "file-service" is the Eureka app name
+    video-service-url: "http://video-processing-service"
 
 # 6. Kafka Topic Names
 #pqcstego:
