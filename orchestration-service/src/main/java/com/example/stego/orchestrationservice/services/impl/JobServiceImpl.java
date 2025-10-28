@@ -120,7 +120,10 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Job getJobStatus(String jobId, OAuth2User principal) {
-        return null;
+        var userId = getGithubId(principal);
+        return jobRepository.findByJobId(jobId)
+                .filter(job -> job.getSenderUserId().equals(userId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Job not found or access denied."));
     }
 
     @Override
