@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
     db-mongo:
         image: mongo:latest
@@ -20,8 +22,22 @@ services:
         volumes:
             - redis_data:/data
 
+    pqc-kafka:
+        image: confluentinc/cp-kafka:latest
+        container_name: pqc-kafka
+        hostname: pqc-kafka
+        restart: unless-stopped
+        ports:
+            # Port for host machine to connect (e.g. with a UI tool)
+            - "9094:9094"
+            # Note: Port 9092 is used for inter-container communication and is not exposed to the host
+        volumes:
+            - kafka_data:/var/lib/kafka/data
+
 volumes:
     mongo_data:
         driver: local
     redis_data:
+        driver: local
+    kafka_data:
         driver: local
