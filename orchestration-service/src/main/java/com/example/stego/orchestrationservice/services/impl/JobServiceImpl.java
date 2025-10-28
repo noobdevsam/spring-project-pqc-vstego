@@ -148,7 +148,30 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public ResponseEntity<Resource> getDownloadableFile(String jobId, OAuth2User principal) {
-        return null;
+        var userId = getGithubId(principal);
+        var job = jobRepository.findByJobId(jobId)
+                .filter(j -> j.getSenderUserId().equals(userId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Job not found or access denied."));
+
+        if (job.getJobStatus() != JobStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Job is not yet complete.");
+        }
+
+        var fileId = job.getStorage().getOutputFileGridFsId();
+        if (fileId == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Job completed but no output file ID was recorded.");
+        }
+
+        // Stream the file from file-service
+        try {
+            return fileServiceRestClient.get()
+                    .uri(FILE_SERVICE_DOWNLOAD_URI, fileId)
+                    .retrieve()
+                    .toEntity(Resource.class);
+        } catch (Exception e) {
+            log.error("File download proxy failed for fileId: {}", fileId, e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve file from storage.");
+        }
     }
 
     @Override
