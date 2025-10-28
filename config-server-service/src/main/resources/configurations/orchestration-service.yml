@@ -1,0 +1,53 @@
+server:
+    port: 8082 # Port for the orchestration-service
+
+# Enable Virtual Threads
+spring:
+    threads:
+        virtual:
+            enabled: true
+
+    # 1. MongoDB Database
+    data:
+        mongodb:
+            uri: mongodb://${ORCHESTRATION_SERVICE_MONGO_HOST:localhost}:${ORCHESTRATION_SERVICE_MONGO_PORT:27017}
+            database: ${ORCHESTRATION_SERVICE_MONGO_DB:jobs_db}
+
+    # 2. Kafka Configuration
+    kafka:
+        bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+        consumer:
+            group-id: orchestration-consumer-group
+            auto-offset-reset: earliest
+    #            properties:
+    #                spring.json.trusted.packages: "com.example.stego.orchestrationservice.dto.kafka"
+    #        producer:
+    #            properties:
+    #                spring.json.add.type.headers: false
+
+    # 3. Security: Needs client ID/Secret to deserialize the user
+    security:
+        oauth2:
+            client:
+                registration:
+                    github:
+                        client-id: ${GITHUB_CLIENT_ID}
+                        client-secret: ${GITHUB_CLIENT_SECRET}
+
+    # 4. Eureka (Discovery Service) Configuration
+eureka:
+    client:
+        service-url:
+            defaultZone: http://${EUREKA_SERVER_HOST:localhost}:8761/eureka/
+
+## 5. Service URLs
+#services:
+#    file-service-url: "http://file-service" # "file-service" is the Eureka app name
+#    video-service-url: "http://video-processing-service"
+
+# 6. Kafka Topic Names
+#pqcstego:
+#    topics:
+#        request-encode: job.request.encode
+#        request-decode: job.request.decode
+#        job-completion: job.completion
