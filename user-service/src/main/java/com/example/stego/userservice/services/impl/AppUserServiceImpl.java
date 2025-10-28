@@ -1,6 +1,7 @@
 package com.example.stego.userservice.services.impl;
 
 import com.example.stego.userservice.document.User;
+import com.example.stego.userservice.model.KeyUpdateRequest;
 import com.example.stego.userservice.model.UserDTO;
 import com.example.stego.userservice.repo.UserRepo;
 import com.example.stego.userservice.services.AppUserService;
@@ -49,5 +50,15 @@ public class AppUserServiceImpl implements AppUserService {
                 .stream()
                 .map(UserDTO::fromUserToUserDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public UserDTO updatePqcKeys(OAuth2AuthenticationToken authenticationToken, KeyUpdateRequest keyUpdateRequest) {
+        return null;
+    }
+
+    @Override
+    public String getPrivateKey(OAuth2AuthenticationToken authenticationToken) {
+        return "";
     }
 }
