@@ -11,8 +11,8 @@ import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
 import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
 import org.springframework.stereotype.Service;
 
-import java.security.KeyPairGenerator;
-import java.security.Security;
+import java.security.*;
+import java.util.Base64;
 import java.util.Optional;
 
 @Service
@@ -29,7 +29,7 @@ public class PqcServiceImpl implements PqcService {
     private final PublicKeyRepo publicKeyRepo;
 
     @Override
-    public KeyPairDTO generateKeys() throws Exception {
+    public KeyPairDTO generateKeys() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         // Generate a key pair using a PQC algorithm
         var kemGenerator = KeyPairGenerator.getInstance("Kyber", BouncyCastleProvider.PROVIDER_NAME);
         kemGenerator.initialize(KyberParameterSpec.kyber1024);
@@ -39,6 +39,13 @@ public class PqcServiceImpl implements PqcService {
         var dsaGenerator = KeyPairGenerator.getInstance("Dilithium", BouncyCastleProvider.PROVIDER_NAME);
         dsaGenerator.initialize(DilithiumParameterSpec.dilithium5);
         var dsaKeyPair = dsaGenerator.generateKeyPair();
+
+        return new KeyPairDTO(
+                Base64.getEncoder().encodeToString(kemKeyPair.getPublic().getEncoded()),
+                Base64.getEncoder().encodeToString(kemKeyPair.getPrivate().getEncoded()),
+                Base64.getEncoder().encodeToString(dsaKeyPair.getPublic().getEncoded()),
+                Base64.getEncoder().encodeToString(dsaKeyPair.getPrivate().getEncoded())
+        );
 
     }
 
