@@ -29,6 +29,7 @@
     <properties>
         <java.version>25</java.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
+        <bouncycastle.version>1.80</bouncycastle.version>
     </properties>
     <dependencies>
         <dependency>
@@ -58,6 +59,17 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
         </dependency>
 
         <dependency>
