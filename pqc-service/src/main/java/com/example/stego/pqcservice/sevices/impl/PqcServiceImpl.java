@@ -10,6 +10,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
 import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.*;
 import java.util.Base64;
@@ -50,8 +51,25 @@ public class PqcServiceImpl implements PqcService {
     }
 
     @Override
+    @Transactional
     public PublicKey setPublicKey(String userId, PublicKeyDTO publicKeyDTO) {
-        return null;
+
+        // Deactivate existing active keys for this user
+        publicKeyRepo.findByUserIdAndIsActiveTrue(userId).ifPresent(
+                oldKey -> {
+                    oldKey.setActive(false);
+                    publicKeyRepo.save(oldKey);
+                }
+        );
+
+        // Create and save the new active public key
+        var newKey = PublicKey.builder()
+                .userId(userId)
+                .kemPublicKey(publicKeyDTO.getKemPublicKey())
+                .dsaPublicKey(publicKeyDTO.getDsaPublicKey())
+                .build();
+        return publicKeyRepo.save(newKey);
+
     }
 
     @Override
