@@ -74,6 +74,6 @@ public class PqcServiceImpl implements PqcService {
 
     @Override
     public Optional<PublicKey> getPublicKeyForUser(String userId) {
-        return Optional.empty();
+        return publicKeyRepo.findByUserIdAndIsActiveTrue(userId);
     }
 }
