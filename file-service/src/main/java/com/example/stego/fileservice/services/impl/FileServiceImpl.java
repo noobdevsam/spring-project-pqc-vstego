@@ -2,14 +2,17 @@ package com.example.stego.fileservice.services.impl;
 
 import com.example.stego.fileservice.model.FileMetadata;
 import com.example.stego.fileservice.services.FileService;
+import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.model.GridFSUploadOptions;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -19,30 +22,32 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class FileServiceImpl implements FileService {
 
     private final GridFsTemplate gridFsTemplate;
-//    private GridFSBucket gridFSBucket; // For streaming large files
+    private final GridFSBucket gridFSBucket;
 
-    public FileServiceImpl(GridFsTemplate gridFsTemplate) {
+    public FileServiceImpl(GridFsTemplate gridFsTemplate, GridFSBucket gridFSBucket) {
         this.gridFsTemplate = gridFsTemplate;
-//        this.gridFSBucket = gridFSBucket;
+        this.gridFSBucket = gridFSBucket;
     }
 
-    //  to get authenticated user ID (assuming or similar from API Gateway)
     @Override
     public String getAuthenticatedUserId() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            // In a real scenario, this would extract the userId from the JWT or OAuth2 token
-            // For now, we'll use the principal name as placeholder or a dummy ID
-            return authentication.getName(); // Assuming principal name is the userId
-        }
-        // Fallback for testing or if security context is not fully set up yet
-        // In a production environment, this should throw exception or return null if not authenticated
-        return "anonymous"; // Placeholder
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(authentication -> {
+                    if (authentication.getPrincipal() instanceof Jwt) {
+                        Jwt jwt = (Jwt) authentication.getPrincipal();
+                        // Assuming the 'sub' claim in the JWT holds the user ID
+                        return jwt.getSubject();
+                    }
+                    // Fallback for other authentication types or testing
+                    return authentication.getName();
+                })
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated"));
     }
 
     @Override
@@ -53,20 +58,21 @@ public class FileServiceImpl implements FileService {
             String ownerUserId
     ) throws IOException {
         var metadata = new Document();
-
-        metadata.put("ownerUserId", ownerUserId); // Store ownerUserId as custom metadata
+        metadata.put("ownerUserId", ownerUserId);
         metadata.put("uploadDate", LocalDateTime.now());
+        metadata.put("_contentType", contentType);
 
         var options = new GridFSUploadOptions()
-                .metadata(metadata)
-                .chunkSizeBytes(255 * 1024); // Default chunk size
+                .chunkSizeBytes(1024 * 1024) // 1MB chunk size
+                .metadata(metadata);
 
-        var fileId = gridFsTemplate.store(inputStream, filename, contentType, options);
-        return fileId.toString();
+        ObjectId fileId = gridFSBucket.uploadFromStream(filename, inputStream, options);
+        return fileId.toHexString();
     }
 
     @Override
     public GridFsResource retrieveFile(String fileId) {
+        var ownerUserId = getAuthenticatedUserId();
         var gridFSFile = gridFsTemplate.findOne(
                 new Query(
                         Criteria.where("_id").is(fileId)
@@ -77,7 +83,12 @@ public class FileServiceImpl implements FileService {
             return null;
         }
 
-        // Check ownership if needed, but for internal API, we might trust the caller
+        assert gridFSFile.getMetadata() != null;
+        // Ensure only the owner can retrieve the file
+        if (!ownerUserId.equals(gridFSFile.getMetadata().getString("ownerUserId"))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to retrieve this file");
+        }
+
         return new GridFsResource(gridFSFile);
     }
 
