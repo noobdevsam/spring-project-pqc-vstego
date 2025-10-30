@@ -1,4 +1,4 @@
-package com.example.stego.fileservice.config;
+package com.example.stego.fileservice.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
