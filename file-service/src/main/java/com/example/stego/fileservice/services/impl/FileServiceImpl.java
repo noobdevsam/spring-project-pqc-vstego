@@ -2,9 +2,7 @@ package com.example.stego.fileservice.services.impl;
 
 import com.example.stego.fileservice.model.FileMetadata;
 import com.example.stego.fileservice.services.FileService;
-import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.model.GridFSUploadOptions;
-import lombok.RequiredArgsConstructor;
 import org.bson.Document;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -23,11 +21,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
 
-    private GridFsTemplate gridFsTemplate;
-    private GridFSBucket gridFSBucket; // For streaming large files
+    private final GridFsTemplate gridFsTemplate;
+//    private GridFSBucket gridFSBucket; // For streaming large files
+
+    public FileServiceImpl(GridFsTemplate gridFsTemplate) {
+        this.gridFsTemplate = gridFsTemplate;
+//        this.gridFSBucket = gridFSBucket;
+    }
 
     //  to get authenticated user ID (assuming or similar from API Gateway)
     @Override
