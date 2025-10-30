@@ -10,8 +10,10 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -104,7 +106,24 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public void deleteFile(String fileId, String ownerUserId) {
+        var gridFSFile = gridFsTemplate.findOne(
+                new Query(
+                        Criteria.where("_id").is(fileId)
+                )
+        );
 
+        if (gridFSFile == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found.");
+        }
+
+        assert gridFSFile.getMetadata() != null;
+
+        // Ensure only the owner can delete the file
+        if (!ownerUserId.equals(gridFSFile.getMetadata().getString("ownerUserId"))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to delete this file");
+        }
+
+        gridFsTemplate.delete(new Query(Criteria.where("_id").is(fileId)));
     }
 
 }
