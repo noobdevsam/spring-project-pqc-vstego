@@ -23,8 +23,8 @@ public class SecurityConfig {
 
                         // 2. Allow the OAuth2 login and callback URLs (SRS Requirement)
                         .pathMatchers(
-                                "/oauth2/authorization/github",
-                                "/login/oauth2/code/github"
+                                "/oauth2/**",
+                                "/login/**"
                         ).permitAll()
 
                         // 3. (Optional) Allow logout
