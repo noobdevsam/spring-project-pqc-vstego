@@ -11,6 +11,13 @@ spring:
             uri: mongodb://${FILE_SERVICE_MONGO_HOST:localhost}:${FILE_SERVICE_MONGO_PORT:27017}
             database: ${FILE_SERVICE_MONGO_DB:files_db}
 
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    # This Uri points to the public key endpoint of the gateway service
+                    jwk-set-uri: http://${GATEWAY_SERVICE_HOST:localhost}:${GATEWAY_SERVICE_PORT}/.well-known/jwks.json
+
 pqcstego:
     cleanup:
         enabled: true
