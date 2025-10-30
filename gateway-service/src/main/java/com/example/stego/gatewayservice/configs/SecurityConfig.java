@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.config.web.server.SessionCreationPolicy;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @Configuration
@@ -40,6 +41,7 @@ public class SecurityConfig {
                         .anyExchange().authenticated()
                 )
                 .oauth2Login(Customizer.withDefaults()) // Enable GitHub OAuth2 login flow
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Enforce stateless sessions
                 .logout(
                         logout -> logout
                                 .logoutUrl("/logout")
