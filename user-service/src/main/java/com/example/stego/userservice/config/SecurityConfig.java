@@ -6,6 +6,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -25,8 +26,10 @@ public class SecurityConfig {
                         // Deny access to all other endpoints
                         .anyRequest().denyAll()
                 )
-                // Enable OAuth2 login support to deserialize the principal from the session
-                .oauth2Login(Customizer.withDefaults())
+                .oauth2ResourceServer(
+                        oauth2 -> oauth2.jwt(Customizer.withDefaults())
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Disable CSRF protection for simplicity in this example
                 .csrf(AbstractHttpConfigurer::disable)
                 .build();

@@ -25,14 +25,13 @@ spring:
     #            properties:
     #                spring.json.add.type.headers: false
 
-    # 3. Security: Needs client ID/Secret to deserialize the user
+    # 3. Security: OAuth2 Resource Server with JWT
     security:
         oauth2:
-            client:
-                registration:
-                    github:
-                        client-id: ${GITHUB_CLIENT_ID}
-                        client-secret: ${GITHUB_CLIENT_SECRET}
+            resourceserver:
+                jwt:
+                    # This Uri points to the public key endpoint of the gateway service
+                    jwk-set-uri: http://${GATEWAY_SERVICE_HOST:localhost}:${GATEWAY_SERVICE_PORT}/.well-known/jwks.json
 
     # 4. Eureka (Discovery Service) Configuration
 eureka:

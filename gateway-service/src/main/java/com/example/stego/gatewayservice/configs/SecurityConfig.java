@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.config.web.server.SessionCreationPolicy;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @Configuration
@@ -23,8 +24,8 @@ public class SecurityConfig {
 
                         // 2. Allow the OAuth2 login and callback URLs (SRS Requirement)
                         .pathMatchers(
-                                "/oauth2/authorization/github",
-                                "/login/oauth2/code/github"
+                                "/oauth2/**",
+                                "/login/**"
                         ).permitAll()
 
                         // 3. (Optional) Allow logout
@@ -33,10 +34,14 @@ public class SecurityConfig {
                         // 4. (Optional) Allow actuator health checks
                         .pathMatchers("/actuator/health").permitAll()
 
-                        // 5. Secure ALL other routes (SRS Requirement)
+                        // 5. Allow the JWK endpoint for public key retrieval
+                        .pathMatchers("/.well-known/jwks.json").permitAll()
+
+                        // 6. Secure ALL other routes (SRS Requirement)
                         .anyExchange().authenticated()
                 )
                 .oauth2Login(Customizer.withDefaults()) // Enable GitHub OAuth2 login flow
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Enforce stateless sessions
                 .logout(
                         logout -> logout
                                 .logoutUrl("/logout")
