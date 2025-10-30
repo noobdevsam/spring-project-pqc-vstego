@@ -2,8 +2,10 @@ package com.example.stego.fileservice.services.impl;
 
 import com.example.stego.fileservice.model.FileMetadata;
 import com.example.stego.fileservice.services.FileService;
+import com.mongodb.client.gridfs.GridFSBucket;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
+import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -13,6 +15,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
+
+    private GridFsTemplate gridFsTemplate;
+    private GridFSBucket gridFSBucket;
 
     @Override
     public String storeFile(InputStream inputStream, String filename, String contentType, String ownerUserId) throws IOException {
