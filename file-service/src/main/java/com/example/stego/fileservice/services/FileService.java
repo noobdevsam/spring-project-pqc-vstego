@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface FileService {
 
+    String getAuthenticatedUserId();
+
     String storeFile(
             InputStream inputStream,
             String filename,

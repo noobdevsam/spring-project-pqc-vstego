@@ -29,8 +29,9 @@ public class FileServiceImpl implements FileService {
     private GridFsTemplate gridFsTemplate;
     private GridFSBucket gridFSBucket; // For streaming large files
 
-    // Helper to get authenticated user ID (assuming or similar from API Gateway)
-    private String getAuthenticatedUserId() {
+    //  to get authenticated user ID (assuming or similar from API Gateway)
+    @Override
+    public String getAuthenticatedUserId() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             // In a real scenario, this would extract the userId from the JWT or OAuth2 token
