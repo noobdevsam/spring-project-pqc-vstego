@@ -83,11 +83,12 @@ The system will be composed of several distinct microservices, each with its own
 3. **React Client (Front-End):**
     * The user-facing SPA. Handles UI, state management, and API calls to the API Gateway.
 4. **API Gateway (e.g., Spring Cloud Gateway):**
-    * The single, authenticated entry point for all client requests.
+    * The single entry point for all client requests. It handles user authentication via GitHub OAuth2, issues internal
+      JWTs for service-to-service communication, and routes requests to the appropriate microservices.
     * It discovers the location of other services via the **Discovery Service** and pulls its configuration from the *
       *Config Service**.
 5. **User Service (Spring Boot):**
-    * Handles GitHub OAuth2 login, session management, and user profile creation.
+    * Manages user profiles. It consumes the JWT from the API Gateway to identify the user.
     * **Database:** users\_db (MongoDB). Stores user profiles (GitHub ID, username, avatar).
     * It registers with the **Discovery Service** and pulls its configuration (e.g., database credentials) from the *
       *Config Service**.
@@ -157,13 +158,44 @@ The system will be composed of several distinct microservices, each with its own
 
 #### **3.1 Functional Requirements (Backend)**
 
-##### **FR-B-1: User Authentication & Management**
+##### **FR-B-1: User Authentication & Authorization**
 
-* **FR-B-1.1:** The User Service must implement the "Login with GitHub" OAuth2 flow.
+###### **3.1.1 Authentication and Authorization Flow**
+
+The system employs a centralized authentication model using the API Gateway, which is responsible for both
+authenticating users via GitHub OAuth2 and issuing internal JSON Web Tokens (JWTs) for secure inter-service
+communication.
+
+1. **User Authentication via GitHub (API Gateway)**
+    * A user initiates login by accessing a specific endpoint on the `API Gateway` (e.g.,
+      `/oauth2/authorization/github`).
+    * The `API Gateway` redirects the user to GitHub's OAuth2 authorization screen.
+    * Upon user approval, GitHub redirects back to the `API Gateway` with an authorization code.
+    * The `API Gateway` exchanges this code with GitHub for an access token.
+
+2. **Internal JWT Generation (API Gateway)**
+    * After successfully obtaining a GitHub access token, the `API Gateway` generates a new, internal JWT.
+    * This JWT contains claims about the user, including their username, roles, and permissions (scopes).
+    * The JWT is signed using a private RSA key held exclusively by the `API Gateway`.
+
+3. **Secure Downstream Requests**
+    * For every subsequent request made by the user to the backend, the `API Gateway` attaches the generated JWT to the
+      `Authorization` header (e.g., `Authorization: Bearer <token>`).
+    * This JWT, not the GitHub token, is forwarded to the downstream microservices.
+
+4. **Service-to-Service Authorization (Resource Servers)**
+    * All downstream microservices (`user-service`, `pqc-service`, etc.) are configured as OAuth2 Resource Servers.
+    * On receiving a request, each service inspects the `Authorization` header for the JWT.
+    * The service validates the JWT's signature by fetching the public key from the `API Gateway`'s public JWK Set
+      endpoint (`/.well-known/jwks.json`).
+    * If the token is valid and not expired, the service extracts the user's identity and permissions from the claims to
+      make authorization decisions.
+
+* **FR-B-1.1:** The API Gateway must implement the "Login with GitHub" OAuth2 flow.
 * **FR-B-1.2:** Upon successful login, the User Service shall create or update a user profile in the users\_db (storing
   GitHub ID, username, avatar URL).
-* **FR-B-1.3:** The API Gateway must enforce authentication (e.g., via JWT or session) for all endpoints except the
-  login handler.
+* **FR-B-1.3:** The API Gateway must enforce authentication for all endpoints. All inter-service communication must be
+  secured via a JWT issued by the API Gateway.
 * **FR-B-1.4:** The User Service shall provide an endpoint GET /api/v1/users to list all registered users (username,
   avatar, userId).
 
@@ -209,7 +241,7 @@ The system will be composed of several distinct microservices, each with its own
        (The header must define the length of each subsequent section).
 * **FR-B-4.4 (Steganography):** The Video Processing Service shall:
     1. Fetch the carrier video stream from the File Service.
-    2. Pipe the stream to ffmpeg \-i pipe:0 ... to extract frames.
+  2. pipe the stream to ffmpeg \-i pipe:0 ... to extract frames.
     3. Embed the binary payload (from FR-B-4.3) into the LSBs of the frames.
     4. Pipe the modified frames to ffmpeg ... \-f mp4 pipe:1, streaming the output *directly* to the File Service to
        create the final stego-video.
@@ -251,7 +283,8 @@ The system will be composed of several distinct microservices, each with its own
   spring.threads.virtual.enabled=true).
 * **NFR-B-3 (Streaming):** All file handling *must* use InputStream and OutputStream to process data as streams, never
   loading a full file into service memory (per C-7).
-* **NFR-B-4 (Security):** All API endpoints (except login) must be secured via the OAuth2 session. PQC private keys must
+* **NFR-B-4 (Security):** All API endpoints (except login and the public JWK set endpoint) must be secured. All
+  communication between the API Gateway and downstream services must be authenticated using JWTs. PQC private keys must
   never be stored by the backend.
 * **NFR-B-5 (Scalability):** The Video Processing Service must be horizontally scalable (multiple instances in the same
   Kafka consumer group).
