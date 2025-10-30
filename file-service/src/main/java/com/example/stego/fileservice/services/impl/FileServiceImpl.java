@@ -23,10 +23,14 @@ public class FileServiceImpl implements FileService {
     // Helper to get authenticated user ID (assuming or similar from API Gateway)
     private String getAuthenticatedUserId() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
-
         if (authentication != null && authentication.isAuthenticated()) {
-
+            // In a real scenario, this would extract the userId from the JWT or OAuth2 token
+            // For now, we'll use the principal name as placeholder or a dummy ID
+            return authentication.getName(); // Assuming principal name is the userId
         }
+        // Fallback for testing or if security context is not fully set up yet
+        // In a production environment, this should throw exception or return null if not authenticated
+        return "anonymous"; // Placeholder
     }
 
     @Override
