@@ -6,6 +6,8 @@ import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.model.GridFSUploadOptions;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -58,7 +60,18 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public GridFsResource retrieveFile(String fileId) {
-        return null;
+        var gridFSFile = gridFsTemplate.findOne(
+                new Query(
+                        Criteria.where("_id").is(fileId)
+                )
+        );
+
+        if (gridFSFile == null) {
+            return null;
+        }
+
+        // Check ownership if needed, but for internal API, we might trust the caller
+        return new GridFsResource(gridFSFile);
     }
 
     @Override
