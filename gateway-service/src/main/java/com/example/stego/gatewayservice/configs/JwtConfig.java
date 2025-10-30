@@ -16,16 +16,6 @@ import java.util.UUID;
 @Configuration
 public class JwtConfig {
 
-    private static RSAKey generateRsa() {
-        var keyPair = generateRsaKey();
-        var publicKey = (RSAPublicKey) keyPair.getPublic();
-        var privateKey = (RSAPrivateKey) keyPair.getPrivate();
-        return new RSAKey.Builder(publicKey)
-                .privateKey(privateKey)
-                .keyID(UUID.randomUUID().toString())
-                .build();
-    }
-
     private static KeyPair generateRsaKey() {
         try {
             var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -37,8 +27,24 @@ public class JwtConfig {
     }
 
     @Bean
-    public JWKSource<SecurityContext> jwkSource() {
-        var rsaKey = generateRsa();
+    public RSAKey generateRsa() {
+        var keyPair = generateRsaKey();
+        var publicKey = (RSAPublicKey) keyPair.getPublic();
+        var privateKey = (RSAPrivateKey) keyPair.getPrivate();
+        return new RSAKey.Builder(publicKey)
+                .privateKey(privateKey)
+                .keyID(UUID.randomUUID().toString())
+                .build();
+    }
+
+    @Bean
+    public JWKSet jwkSet(RSAKey rsaKey) {
+        // Expose only the public part of the RSA key in the JWK Set
+        return new JWKSet(rsaKey.toPublicJWK());
+    }
+
+    @Bean
+    public JWKSource<SecurityContext> jwkSource(RSAKey rsaKey) {
         var jwkSet = new JWKSet(rsaKey);
         return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
     }
