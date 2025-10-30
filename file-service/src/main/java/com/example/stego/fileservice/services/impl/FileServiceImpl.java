@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -76,7 +78,28 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public List<FileMetadata> listFiles(String ownerUserId) {
-        return List.of();
+        var files = new ArrayList<FileMetadata>();
+
+        gridFsTemplate.find(
+                new Query(
+                        Criteria.where("metadata.ownerUserId").is(ownerUserId)
+                )
+        ).forEach(gridFSFile -> {
+                    var metadata = new FileMetadata();
+                    assert gridFSFile.getMetadata() != null;
+
+                    metadata.setId(gridFSFile.getId().toString());
+                    metadata.setFilename(gridFSFile.getFilename());
+                    metadata.setContentType(gridFSFile.getMetadata().getString("_contentType"));
+                    metadata.setLength(gridFSFile.getLength());
+                    metadata.setUploadDate(gridFSFile.getUploadDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+                    metadata.setOwnerUserId(gridFSFile.getMetadata().getString("ownerUserId"));
+
+                    files.add(metadata);
+                }
+        );
+
+        return files;
     }
 
     @Override
