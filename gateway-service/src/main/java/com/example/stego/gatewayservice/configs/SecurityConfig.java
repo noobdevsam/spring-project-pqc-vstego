@@ -33,7 +33,10 @@ public class SecurityConfig {
                         // 4. (Optional) Allow actuator health checks
                         .pathMatchers("/actuator/health").permitAll()
 
-                        // 5. Secure ALL other routes (SRS Requirement)
+                        // 5. Allow the JWK endpoint for public key retrieval
+                        .pathMatchers("/.well-known/jwks.json").permitAll()
+
+                        // 6. Secure ALL other routes (SRS Requirement)
                         .anyExchange().authenticated()
                 )
                 .oauth2Login(Customizer.withDefaults()) // Enable GitHub OAuth2 login flow
