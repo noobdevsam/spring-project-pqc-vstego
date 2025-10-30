@@ -6,6 +6,7 @@ import com.mongodb.client.gridfs.GridFSBucket;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -17,7 +18,16 @@ import java.util.List;
 public class FileServiceImpl implements FileService {
 
     private GridFsTemplate gridFsTemplate;
-    private GridFSBucket gridFSBucket;
+    private GridFSBucket gridFSBucket; // For streaming large files
+
+    // Helper to get authenticated user ID (assuming or similar from API Gateway)
+    private String getAuthenticatedUserId() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.isAuthenticated()) {
+
+        }
+    }
 
     @Override
     public String storeFile(InputStream inputStream, String filename, String contentType, String ownerUserId) throws IOException {
