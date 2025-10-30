@@ -1,0 +1,17 @@
+server:
+    port: 8084
+
+spring:
+    threads:
+        virtual:
+            enabled: true
+
+    data:
+        mongodb:
+            uri: mongodb://${FILE_SERVICE_MONGO_HOST:localhost}:${FILE_SERVICE_MONGO_PORT:27017}
+            database: ${FILE_SERVICE_MONGO_DB:files_db}
+
+pqcstego:
+    cleanup:
+        enabled: true
+        retention-days: 3
