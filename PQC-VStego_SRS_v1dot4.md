@@ -160,7 +160,6 @@ The system will be composed of several distinct microservices, each with its own
 
 ##### **FR-B-1: User Authentication & Authorization**
 
-###### **3.1.1 Authentication and Authorization Flow**
 
 The system employs a centralized authentication model using the API Gateway, which is responsible for both
 authenticating users via GitHub OAuth2 and issuing internal JSON Web Tokens (JWTs) for secure inter-service
