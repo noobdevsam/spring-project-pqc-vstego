@@ -2,8 +2,8 @@
 
 ## **Software Requirements Specification: PQC-VStego**
 
-Version: 1.3  
-Date: October 24, 2025
+Version: 1.4  
+Date: October 31, 2025
 
 ---
 
