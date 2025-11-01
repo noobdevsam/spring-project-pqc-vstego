@@ -1,6 +1,7 @@
 package com.example.stego.videoprocessingservice.services.impl;
 
 import com.example.stego.videoprocessingservice.services.SteganographyService;
+import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
@@ -241,7 +243,29 @@ public class SteganographyServiceImpl implements SteganographyService {
 
     @Override
     public Map<String, Object> getVideoInfo(InputStream videoStream) throws IOException, InterruptedException {
-        return Map.of();
+
+        var ffprobeBuilder = new ProcessBuilder(
+                "ffprobe",
+                "-v", "quiet",
+                "-print_format", "json",
+                "-show_streams",
+                "-i", "pipe:0"
+        );
+        var ffprobe = ffprobeBuilder.start();
+
+        try (var stdin = ffprobe.getOutputStream()) {
+            videoStream.transferTo(stdin);
+        }
+
+        try (InputStream stdout = ffprobe.getInputStream()) {
+            var jsonOutput = new String(stdout.readAllBytes());
+            var gson = new Gson();
+            Map<String, Object> result = gson.fromJson(jsonOutput, Map.class);
+            return (Map<String, Object>) ((List) result.get("streams")).get(0);
+        } finally {
+            ffprobe.waitFor();
+            ffprobe.destroy();
+        }
     }
 
     @Override
