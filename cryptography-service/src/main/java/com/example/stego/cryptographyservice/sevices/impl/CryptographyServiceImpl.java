@@ -13,6 +13,7 @@ import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.io.InputStream;
 import java.security.*;
@@ -91,7 +92,15 @@ public class CryptographyServiceImpl implements CryptographyService {
 
     @Override
     public SecretKey generateAESKey() {
-        return null;
+
+        try {
+            var keyGenerator = KeyGenerator.getInstance("AES");
+            keyGenerator.init(AES_KEY_SIZE, new SecureRandom());
+            return keyGenerator.generateKey();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Could not generate AES key", e);
+        }
+
     }
 
     @Override
