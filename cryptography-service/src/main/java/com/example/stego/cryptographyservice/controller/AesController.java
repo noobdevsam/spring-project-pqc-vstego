@@ -2,12 +2,19 @@ package com.example.stego.cryptographyservice.controller;
 
 import com.example.stego.cryptographyservice.sevices.CryptographyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +46,43 @@ public class AesController {
             var error = new HashMap<String, String>();
             error.put("error", "Failed to generate AES key: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    /**
+     * Encrypts a file stream using AES-256 GCM.
+     * Returns the encrypted stream with IV prepended.
+     */
+    @PostMapping("/encrypt")
+    public ResponseEntity<InputStreamResource> encryptFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("aesKey") String base64AesKey) {
+        try {
+            // Decode the AES key
+            var keyBytes = Base64.getDecoder().decode(base64AesKey);
+            var aesKey = new SecretKeySpec(keyBytes, "AES");
+
+            // Get input stream from uploaded file
+            var dataStream = file.getInputStream();
+
+            // Encrypt the stream
+            var encryptedStream = cryptographyService.encryptData(dataStream, aesKey);
+
+            // Prepare response
+            InputStreamResource resource = new InputStreamResource(encryptedStream);
+
+            var headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=encrypted_" + file.getOriginalFilename());
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
+
+        } catch (IOException | IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
