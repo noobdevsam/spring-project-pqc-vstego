@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -116,6 +117,36 @@ public class SteganographyServiceImpl implements SteganographyService {
             int width,
             int height
     ) throws IOException {
+
+        var payloadWithTerminator = new ByteArrayOutputStream();
+        payloadWithTerminator.write(payloadData);
+        payloadWithTerminator.write(PAYLOAD_TERMINATOR);
+        var fullPayload = payloadWithTerminator.toByteArray();
+
+        int payloadBitIndex = 0;
+        int frameSize = width * height * 4; // RGBA
+        var frameBuffer = new byte[frameSize];
+
+        // Read each frame and embed payload bits
+        while (rawFrames.read(frameBuffer) != -1) {
+
+            // Check if there's still payload to embed
+            if (payloadBitIndex < fullPayload.length * 8) {
+
+                // Embed payload bits into the frame's pixel data
+                for (int i = 0; i < frameBuffer.length && payloadBitIndex < fullPayload.length * 8; i++) {
+                    byte payloadByte = fullPayload[payloadBitIndex / 8];
+                    int bit = (payloadByte >> (7 - (payloadBitIndex % 8))) & 1;
+                    frameBuffer[i] = (byte) ((frameBuffer[i] & 0xFE) | bit); // Set LSB
+                    payloadBitIndex++;
+                }
+
+            }
+
+            // Write modified frame to output
+            output.write(frameBuffer);
+        }
+
     }
 
     @Override
