@@ -7,11 +7,14 @@ import com.example.stego.cryptographyservice.repo.PublicKeyRepo;
 import com.example.stego.cryptographyservice.sevices.CryptographyService;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
 import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.crypto.SecretKey;
+import java.io.InputStream;
 import java.security.*;
 import java.util.Base64;
 import java.util.Optional;
@@ -24,6 +27,9 @@ public class CryptographyServiceImpl implements CryptographyService {
         // Add the general Bouncy Castle provider for PQC algorithms
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             Security.addProvider(new BouncyCastleProvider());
+        }
+        if (Security.getProvider(BouncyCastlePQCProvider.PROVIDER_NAME) == null) {
+            Security.addProvider(new BouncyCastlePQCProvider());
         }
     }
 
@@ -76,4 +82,20 @@ public class CryptographyServiceImpl implements CryptographyService {
     public Optional<PublicKey> getPublicKeyForUser(String userId) {
         return publicKeyRepo.findByUserIdAndIsActiveTrue(userId);
     }
+
+    @Override
+    public SecretKey generateAESKey() {
+        return null;
+    }
+
+    @Override
+    public InputStream encryptData(InputStream data, SecretKey secretKey) {
+        return null;
+    }
+
+    @Override
+    public InputStream decryptData(InputStream encryptedData, SecretKey secretKey) {
+        return null;
+    }
+
 }
