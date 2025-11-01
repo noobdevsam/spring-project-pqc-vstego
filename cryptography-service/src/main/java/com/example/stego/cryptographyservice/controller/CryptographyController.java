@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/keys")
 @RequiredArgsConstructor
 public class CryptographyController {
 
@@ -22,10 +22,10 @@ public class CryptographyController {
     /**
      * Generate PQC key pair
      */
-    @PostMapping("/keys/generate")
+    @PostMapping("/generate")
     public ResponseEntity<KeyPairDTO> generateKeys() {
         try {
-            return ResponseEntity.ok(cryptographyService.generateKeys());
+            return ResponseEntity.ok(cryptographyService.generatePQCKeys());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Failed to generate keys", e);
@@ -35,7 +35,7 @@ public class CryptographyController {
     /**
      * Set active public key for the authenticated user
      */
-    @PostMapping("/keys/set")
+    @PostMapping("/set")
     public ResponseEntity<PublicKey> setPublicKey(
             @AuthenticationPrincipal Jwt principal,
             @RequestBody PublicKeyDTO publicKeyDto) {
@@ -47,7 +47,7 @@ public class CryptographyController {
     /**
      * Fetch active public keys for a specific user
      */
-    @GetMapping("/users/{userId}/keys")
+    @GetMapping("/user/{userId}")
     public ResponseEntity<PublicKey> getPublicKeyForUser(@PathVariable String userId) {
         return cryptographyService.getPublicKeyForUser(userId)
                 .map(ResponseEntity::ok)
