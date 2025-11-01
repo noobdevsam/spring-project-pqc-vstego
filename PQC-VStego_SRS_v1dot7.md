@@ -99,13 +99,15 @@ communication secured via HTTPS.
     * **Database:** users\_db (MongoDB). Stores user profiles (GitHub ID, username, avatar).
     * It registers with the **Discovery Service** and pulls its configuration (e.g., database credentials) from the *
       *Config Service**.
-6. **PQC Service (Spring Boot):**
-    * Handles all cryptographic operations: key generation, signing, and verification.
+6. **Cryptography Service (Spring Boot):**
+    * Handles all cryptographic operations: PQC key generation (KEM/DSA), hybrid encryption (AES-GCM + PQC KEM), and
+      digital signatures (PQC DSA).
     * Manages the user-public key association.
-    * **Database:** pqc\_keys\_db (MongoDB). Stores user public keys linked to userIds.
+    * **Database:** crypto\_keys\_db (MongoDB). Stores user public keys linked to userIds.
     * It registers with the **Discovery Service** and pulls its configuration from the **Config Service**.
 7. **Orchestration Service (Spring Boot):**
-    * Handles the primary business logic for encoding/decoding jobs.
+    * Handles the primary business logic for encoding/decoding jobs. It coordinates operations between the
+      `file-service`, `cryptography-service`, and `video-processing-service`.
     * Validates requests and publishes jobs to Kafka.
     * Tracks job status and handles all API-level exception handling.
     * **Database:** jobs\_db (MongoDB). Stores job metadata.
@@ -117,9 +119,9 @@ communication secured via HTTPS.
     * It registers with the **Discovery Service** and pulls its configuration from the **Config Service**.
 9. **Video Processing Service (Spring Boot):**
     * The worker service. Consumes jobs from Kafka.
-    * Fetches files from the File Service.
+   * Fetches files from the File Service and calls the Cryptography Service as needed.
     * Executes ffmpeg for frame extraction/re-assembly.
-    * Performs LSB steganography.
+   * Performs LSB-1 steganography.
     * Streams resulting files back to the File Service.
     * It registers with the **Discovery Service** and pulls its configuration from the **Config Service**.
 
@@ -195,7 +197,8 @@ communication over **HTTPS**.
     * This JWT, not the GitHub token, is forwarded to the downstream microservices over **HTTPS**.
 
 4. **Service-to-Service Authorization (Resource Servers)**
-    * All downstream microservices (`user-service`, `pqc-service`, etc.) are configured as OAuth2 Resource Servers and
+    * All downstream microservices (`user-service`, `cryptography-service`, etc.) are configured as OAuth2 Resource
+      Servers and
       must enforce HTTPS.
     * On receiving a request, each service inspects the `Authorization` header for the JWT.
     * The service validates the JWT's signature by fetching the public key from the `API Gateway`'s public JWK Set
@@ -213,13 +216,16 @@ communication over **HTTPS**.
 * **FR-B-1.5 (Exception Handling):** All services must implement robust exception handling to return appropriate HTTP
   status codes (e.g., 400, 401, 403, 404, 500) and clear error messages in the response body.
 
-##### **FR-B-2: PQC Key Management**
+##### **FR-B-2: Cryptography & Key Management**
 
-* **FR-B-2.1:** The PQC Service shall provide POST /api/v1/keys/generate to generate a new PQC key pair (both Kyber KEM
+* **FR-B-2.1:** The Cryptography Service shall provide POST /api/v1/keys/generate to generate a new PQC key pair (both
+  Kyber KEM
   and Dilithium DSA keys).
-* **FR-B-2.2:** The PQC Service shall provide POST /api/v1/keys/set for an authenticated user to associate their public
-  keys (KEM \+ DSA) with their profile. This is stored in pqc\_keys\_db.
-* **FR-B-2.3:** The PQC Service shall provide GET /api/v1/users/{userId}/keys to fetch the active public keys for a
+* **FR-B-2.2:** The Cryptography Service shall provide POST /api/v1/keys/set for an authenticated user to associate
+  their public
+  keys (KEM \+ DSA) with their profile. This is stored in crypto\_keys\_db.
+* **FR-B-2.3:** The Cryptography Service shall provide GET /api/v1/users/{userId}/keys to fetch the active public keys
+  for a
   specific user.
 
 ##### **FR-B-3: Capacity Estimation**
@@ -244,16 +250,16 @@ communication over **HTTPS**.
     3. Return a jobId (HTTP 202\) and publish an `ENCODE_JOB_REQUEST` to Kafka. The Kafka message will contain the job
        details and the `secretFileId`.
 * **FR-B-4.3 (Hybrid Encryption & Signing):** The Video Processing Service, upon consuming the job, shall:
-    1. Fetch the recipient's public keys (KEM) and the sender's private key (DSA) from the job message.
-    2. Fetch the secret file stream from the File Service using the `secretFileId`.
-    3. Generate a random, single-use AES-256 GCM key.
-    4. Encrypt the secret file stream using the AES key.
-    5. **Sign:** Create a PQC (Dilithium) signature of the `encryptedData` using the *sender's private key*.
-    6. **Encapsulate:** Encapsulate the AES key using the *recipient's public key* (Kyber).
-    7. Create Payload: Create a single binary payload:
+    1. Fetch the secret file stream from the File Service using the `secretFileId`.
+    2. Call the **Cryptography Service** to perform the hybrid encryption and signing. This involves:
+       a. Generating a random, single-use AES-256 GCM key.
+       b. Encrypting the secret file stream using the AES key.
+       c. **Signing:** Creating a PQC (Dilithium) signature of the `encryptedData` using the *sender's private key*.
+       d. **Encapsulating:** Encapsulating the AES key using the *recipient's public key* (Kyber).
+       e. **Creating Payload:** Creating a single binary payload:
        \[Metadata Header\] \+ \[Sender's Public DSA Key\] \+ \[Encapsulated AES Key\] \+ \[PQC Signature\] \+
        \[Encrypted Data\]
-        (The header must define the length of each subsequent section).
+       (The header must define the length of each subsequent section).
 * **FR-B-4.4 (Steganography):** The Video Processing Service shall:
     1. Fetch the original carrier video stream by making an HTTPS request back to the Orchestration Service, which will
        proxy the stream from the initial user request.
@@ -274,7 +280,7 @@ communication over **HTTPS**.
   The stego-video is **not** stored.
 * **FR-B-5.3 (Extraction):** The Video Processing Service shall consume the job, stream the stego-video (proxied from
   the Orchestration Service) to ffmpeg to extract frames, and read the LSBs to re-assemble the full binary payload.
-* **FR-B-5.4 (Decryption & Verification):** The service shall:
+* **FR-B-5.4 (Decryption & Verification):** The service shall call the **Cryptography Service** to:
     1. Parse the payload into its components (Header, Sender's Public Key, EncapsulatedKey, Signature, EncryptedData).
     2. **Verify:** Check the Signature against the EncryptedData using the Sender's Public Key (Dilithium). If
        verification fails, stop and set job status to FAILED (SIGNATURE\_INVALID).
@@ -321,7 +327,7 @@ communication over **HTTPS**.
 
 * **users\_db (users collection):**
     * \_id, githubId (String, Indexed), username (String), avatarUrl (String), createdAt (ISODate).
-* **pqc\_keys\_db (public\_keys collection):**
+* **crypto\_keys\_db (public\_keys collection):**
     * \_id, userId (String, Indexed), kemPublicKey (String), dsaPublicKey (String), isActive (Boolean), createdAt (
       ISODate).
 * **jobs\_db (jobs collection):**
