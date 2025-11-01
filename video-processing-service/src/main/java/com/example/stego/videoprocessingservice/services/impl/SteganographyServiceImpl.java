@@ -4,6 +4,7 @@ import com.example.stego.videoprocessingservice.services.SteganographyService;
 import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -271,6 +272,24 @@ public class SteganographyServiceImpl implements SteganographyService {
     @Override
     public String uploadFile(InputStream fileStream, String fileName, String contentType, String ownerId) {
         return "";
+    }
+
+    // Custom resource class to handle streaming from an InputStream
+    private static class MyInputStreamResource extends InputStreamResource {
+
+        public MyInputStreamResource(InputStream inputStream) {
+            super(inputStream);
+        }
+
+        @Override
+        public String getFilename() {
+            return "stream"; // Required for multipart requests
+        }
+
+        @Override
+        public long contentLength() {
+            return -1; // Let the stream handle its length
+        }
     }
 
 }
