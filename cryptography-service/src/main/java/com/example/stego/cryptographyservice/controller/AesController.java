@@ -199,4 +199,36 @@ public class AesController {
         }
     }
 
+    /**
+     * Service-to-service endpoint for decrypting input streams directly.
+     * Used by other microservices for internal operations.
+     */
+    @PostMapping(value = "/decrypt-stream", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<InputStreamResource> decryptStream(
+            InputStream encryptedStream,
+            @RequestHeader("X-AES-Key") String base64AesKey) {
+
+        try {
+            // Decode the AES key
+            var keyBytes = Base64.getDecoder().decode(base64AesKey);
+            var aesKey = new SecretKeySpec(keyBytes, "AES");
+
+            // Decrypt the stream
+            var decryptedStream = cryptographyService.decryptData(encryptedStream, aesKey);
+
+            // Return decrypted stream
+            var resource = new InputStreamResource(decryptedStream);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(resource);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+    }
+
 }
