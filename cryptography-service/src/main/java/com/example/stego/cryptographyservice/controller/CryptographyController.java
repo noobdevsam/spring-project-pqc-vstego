@@ -1,9 +1,9 @@
 package com.example.stego.cryptographyservice.controller;
 
-import com.example.stego.pqcservice.document.PublicKey;
-import com.example.stego.pqcservice.model.KeyPairDTO;
-import com.example.stego.pqcservice.model.PublicKeyDTO;
-import com.example.stego.pqcservice.sevices.PqcService;
+import com.example.stego.cryptographyservice.document.PublicKey;
+import com.example.stego.cryptographyservice.model.KeyPairDTO;
+import com.example.stego.cryptographyservice.model.PublicKeyDTO;
+import com.example.stego.cryptographyservice.sevices.CryptographyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +15,9 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-public class PqcController {
+public class CryptographyController {
 
-    private final PqcService pqcService;
+    private final CryptographyService cryptographyService;
 
     /**
      * Generate PQC key pair
@@ -25,7 +25,7 @@ public class PqcController {
     @PostMapping("/keys/generate")
     public ResponseEntity<KeyPairDTO> generateKeys() {
         try {
-            return ResponseEntity.ok(pqcService.generateKeys());
+            return ResponseEntity.ok(cryptographyService.generateKeys());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Failed to generate keys", e);
@@ -40,7 +40,7 @@ public class PqcController {
             @AuthenticationPrincipal Jwt principal,
             @RequestBody PublicKeyDTO publicKeyDto) {
         var userId = principal.getSubject(); // The 'sub' claim from the JWT
-        var savedKey = pqcService.setPublicKey(userId, publicKeyDto);
+        var savedKey = cryptographyService.setPublicKey(userId, publicKeyDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedKey);
     }
 
@@ -49,7 +49,7 @@ public class PqcController {
      */
     @GetMapping("/users/{userId}/keys")
     public ResponseEntity<PublicKey> getPublicKeyForUser(@PathVariable String userId) {
-        return pqcService.getPublicKeyForUser(userId)
+        return cryptographyService.getPublicKeyForUser(userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

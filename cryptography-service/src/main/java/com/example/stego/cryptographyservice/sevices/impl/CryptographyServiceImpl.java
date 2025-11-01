@@ -1,10 +1,10 @@
 package com.example.stego.cryptographyservice.sevices.impl;
 
-import com.example.stego.pqcservice.document.PublicKey;
-import com.example.stego.pqcservice.model.KeyPairDTO;
-import com.example.stego.pqcservice.model.PublicKeyDTO;
-import com.example.stego.pqcservice.repo.PublicKeyRepo;
-import com.example.stego.pqcservice.sevices.PqcService;
+import com.example.stego.cryptographyservice.document.PublicKey;
+import com.example.stego.cryptographyservice.model.KeyPairDTO;
+import com.example.stego.cryptographyservice.model.PublicKeyDTO;
+import com.example.stego.cryptographyservice.repo.PublicKeyRepo;
+import com.example.stego.cryptographyservice.sevices.CryptographyService;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;

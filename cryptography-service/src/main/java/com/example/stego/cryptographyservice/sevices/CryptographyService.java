@@ -1,15 +1,15 @@
 package com.example.stego.cryptographyservice.sevices;
 
-import com.example.stego.pqcservice.document.PublicKey;
-import com.example.stego.pqcservice.model.KeyPairDTO;
-import com.example.stego.pqcservice.model.PublicKeyDTO;
+import com.example.stego.cryptographyservice.document.PublicKey;
+import com.example.stego.cryptographyservice.model.KeyPairDTO;
+import com.example.stego.cryptographyservice.model.PublicKeyDTO;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.Optional;
 
-public interface PqcService {
+public interface CryptographyService {
 
     KeyPairDTO generateKeys() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException;
 
