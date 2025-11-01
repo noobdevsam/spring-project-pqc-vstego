@@ -1,4 +1,4 @@
-package com.example.stego.pqcservice.sevices;
+package com.example.stego.cryptographyservice.sevices;
 
 import com.example.stego.pqcservice.document.PublicKey;
 import com.example.stego.pqcservice.model.KeyPairDTO;

@@ -1,4 +1,4 @@
-package com.example.stego.pqcservice.configs;
+package com.example.stego.cryptographyservice.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

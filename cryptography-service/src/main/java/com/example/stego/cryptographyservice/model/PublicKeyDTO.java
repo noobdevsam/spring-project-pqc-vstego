@@ -1,4 +1,4 @@
-package com.example.stego.pqcservice.model;
+package com.example.stego.cryptographyservice.model;
 
 import lombok.Data;
 

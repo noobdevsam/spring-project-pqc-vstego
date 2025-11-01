@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example.stego</groupId>
-    <artifactId>pqc-service</artifactId>
+    <artifactId>cryptography-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>pqc-service</name>
     <description>pqc-service</description>

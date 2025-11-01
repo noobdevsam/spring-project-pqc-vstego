@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class PqcServiceImpl implements PqcService {
+public class CryptographyServiceImpl implements CryptographyService {
 
     static {
         // Add the general Bouncy Castle provider for PQC algorithms
