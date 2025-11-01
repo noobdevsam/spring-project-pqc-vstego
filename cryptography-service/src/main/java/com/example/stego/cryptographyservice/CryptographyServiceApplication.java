@@ -8,10 +8,10 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing;
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableMongoAuditing
-public class PqcServiceApplication {
+public class CryptographyServiceApplication {
 
     static void main(String[] args) {
-        SpringApplication.run(PqcServiceApplication.class, args);
+        SpringApplication.run(CryptographyServiceApplication.class, args);
     }
 
 }
