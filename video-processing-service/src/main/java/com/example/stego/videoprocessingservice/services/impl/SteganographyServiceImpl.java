@@ -4,8 +4,11 @@ import com.example.stego.videoprocessingservice.services.SteganographyService;
 import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
 
 import java.io.ByteArrayOutputStream;
@@ -23,7 +26,7 @@ public class SteganographyServiceImpl implements SteganographyService {
 
     private static final byte[] PAYLOAD_TERMINATOR = "PQCSTEGO_END".getBytes();
     private final RestClient fileServiceRestClient;
-    private final String FILE_SERVICE_UPLOAD_URI = "/api/v1/files/upload";
+    private final String FILE_SERVICE_UPLOAD_URI = "/api/v1/files";
 
 
     @Override
@@ -270,8 +273,30 @@ public class SteganographyServiceImpl implements SteganographyService {
     }
 
     @Override
-    public String uploadFile(InputStream fileStream, String fileName, String contentType, String ownerId) {
-        return "";
+    public String uploadFile(
+            InputStream fileStream,
+            String fileName,
+            String contentType,
+            String ownerId
+    ) {
+        var body = new LinkedMultiValueMap<String, Object>();
+        body.add("file", new MyInputStreamResource(fileStream));
+        body.add("filename", fileName);
+        body.add("contentType", contentType);
+        body.add("ownerUserId", ownerId);
+
+        Map<String, String> response = fileServiceRestClient.post()
+                .uri(FILE_SERVICE_UPLOAD_URI)
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(body)
+                .retrieve()
+                .body(new ParameterizedTypeReference<Map<String, String>>() {
+                });
+
+        if (response == null || response.get("fileId") == null) {
+            throw new RuntimeException("File upload to file-service failed, response was null or missing fileId.");
+        }
+        return response.get("fileId");
     }
 
     // Custom resource class to handle streaming from an InputStream
