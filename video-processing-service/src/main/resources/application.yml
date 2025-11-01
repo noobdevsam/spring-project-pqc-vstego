@@ -1,0 +1,40 @@
+server:
+    port: 8085
+
+spring:
+    threads:
+        virtual:
+            enabled: true
+
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    jwk-set-uri: ${GATEWAY_SERVICE_HOST:localhost}:${GATEWAY_SERVICE_PORT:8080}/.well-known/jwks.json
+
+    kafka:
+        bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+        consumer:
+            group-id: video-processing-group
+            auto-offset-reset: earliest
+            properties:
+                spring.json.trusted.packages: '*'
+        producer:
+            properties:
+                spring.json.add.type.headers: false
+
+
+eureka:
+    client:
+        service-url:
+            defaultZone: http://${EUREKA_SERVER_HOST:localhost}:8761/eureka/
+
+services:
+    file-service-url: http://${FILE_SERVICE_HOST:file-service}
+    pqc-service-url: http://${PQC_SERVICE_HOST:pqc-service}
+
+pqcstego:
+    topics:
+        request-encode: job.request.encode
+        request-decode: job.request.decode
+        job-completion: job.completion
