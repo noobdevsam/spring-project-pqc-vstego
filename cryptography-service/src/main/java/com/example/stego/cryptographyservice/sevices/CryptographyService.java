@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public interface CryptographyService {
 
-    KeyPairDTO generateKeys() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException;
+    KeyPairDTO generatePQCKeys() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException;
 
     PublicKey setPublicKey(String userId, PublicKeyDTO publicKeyDTO);
 

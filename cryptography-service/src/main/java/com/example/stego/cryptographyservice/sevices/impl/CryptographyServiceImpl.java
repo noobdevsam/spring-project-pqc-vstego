@@ -48,7 +48,7 @@ public class CryptographyServiceImpl implements CryptographyService {
     private final PublicKeyRepo publicKeyRepo;
 
     @Override
-    public KeyPairDTO generateKeys() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+    public KeyPairDTO generatePQCKeys() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         // Generate a key pair using a PQC algorithm
         var kemGenerator = KeyPairGenerator.getInstance("Kyber", BouncyCastlePQCProvider.PROVIDER_NAME);
         kemGenerator.initialize(KyberParameterSpec.kyber1024);
