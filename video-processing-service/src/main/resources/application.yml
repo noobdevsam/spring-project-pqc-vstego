@@ -1,0 +1,29 @@
+server:
+    port: 8085
+
+spring:
+    threads:
+        virtual:
+            enabled: true
+
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    jwk-set-uri: ${GATEWAY_SERVICE_HOST:localhost}:${GATEWAY_SERVICE_PORT:8080}/.well-known/jwks.json
+
+
+eureka:
+    client:
+        service-url:
+            defaultZone: http://${EUREKA_SERVER_HOST:localhost}:8761/eureka/
+
+services:
+    file-service-url: http://${FILE_SERVICE_HOST:file-service}
+    pqc-service-url: http://${PQC_SERVICE_HOST:pqc-service}
+
+pqcstego:
+    topics:
+        request-encode: job.request.encode
+        request-decode: job.request.decode
+        job-completion: job.completion
