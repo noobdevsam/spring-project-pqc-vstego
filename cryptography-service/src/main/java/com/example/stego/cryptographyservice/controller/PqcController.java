@@ -15,7 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api/v1/keys")
 @RequiredArgsConstructor
-public class CryptographyController {
+public class PqcController {
 
     private final CryptographyService cryptographyService;
 
