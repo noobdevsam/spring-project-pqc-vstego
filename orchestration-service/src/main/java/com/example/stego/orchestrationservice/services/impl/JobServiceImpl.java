@@ -11,6 +11,7 @@ import com.example.stego.orchestrationservice.services.JobService;
 import com.example.stego.orchestrationservice.services.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -141,7 +142,8 @@ public class JobServiceImpl implements JobService {
                     .contentType(MediaType.MULTIPART_FORM_DATA)
                     .body(body)
                     .retrieve()
-                    .body(Map.class);
+                    .body(new ParameterizedTypeReference<Map<String, Object>>() {
+                    });
         } catch (Exception e) {
             log.error("Capacity estimation failed", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Capacity estimation failed.");
