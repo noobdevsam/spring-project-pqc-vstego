@@ -150,8 +150,93 @@ public class SteganographyServiceImpl implements SteganographyService {
     }
 
     @Override
-    public byte[] extractPayload(InputStream stegoVideoInputStream) throws IOException, InterruptedException {
-        return new byte[0];
+    public byte[] extractPayload(
+            InputStream stegoVideoInputStream
+    ) throws IOException, InterruptedException {
+
+        var extractBuilder = new ProcessBuilder(
+                "ffmpeg",
+                "-i", "pipe:0",
+                "-f", "rawvideo",
+                "-pix_fmt", "rgba",
+                "pipe:1"
+        );
+        var extractor = extractBuilder.start();
+
+        try (var extractorStdin = extractor.getOutputStream();
+             var extractorStdout = extractor.getInputStream();
+             var extractedPayload = new ByteArrayOutputStream()) {
+
+            // Pipe stego video to extractor in a separate thread
+            var pipeToStdin = new Thread(() -> {
+                try {
+                    stegoVideoInputStream.transferTo(extractorStdin);
+                } catch (IOException e) {
+                    log.error("Error piping stego video to ffmpeg", e);
+                } finally {
+                    try {
+                        extractorStdin.close();
+                    } catch (IOException ignored) {
+                    }
+                }
+            });
+
+            // Start the piping thread
+            pipeToStdin.start();
+
+            // Extract LSBs from the raw frame stream
+            byte currentByte = 0;
+            int bitCount = 0;
+            var buffer = new byte[1024 * 4]; // Read 1k pixels at a time
+            int bytesRead;
+
+            // Read until we find the terminator
+            while ((bytesRead = extractorStdout.read(buffer)) != -1) {
+
+                // Process each byte to extract LSBs
+                for (int i = 0; i < bytesRead; i++) {
+                    var lsb = (byte) (buffer[i] & 1);  // Get LSB
+                    currentByte |= (lsb << (7 - bitCount));
+                    bitCount++;
+
+                    // If we have a full byte, write it to the payload
+                    if (bitCount == 8) {
+                        extractedPayload.write(currentByte);
+                        // Check for terminator
+                        var currentTail = extractedPayload.toByteArray();
+
+                        // Check if the terminator is at the end
+                        if (currentTail.length > PAYLOAD_TERMINATOR.length) {
+                            boolean found = true;
+
+                            // Compare last bytes with terminator
+                            for (int j = 0; j < PAYLOAD_TERMINATOR.length; j++) {
+                                if (currentTail[currentTail.length - PAYLOAD_TERMINATOR.length + j] != PAYLOAD_TERMINATOR[j]) {
+                                    found = false;
+                                    break;
+                                }
+                            }
+
+                            if (found) {
+                                // Terminator found, return payload without it
+                                var finalPayload = new byte[currentTail.length - PAYLOAD_TERMINATOR.length];
+                                System.arraycopy(currentTail, 0, finalPayload, 0, finalPayload.length);
+                                return finalPayload;
+                            }
+                        }
+
+                        currentByte = 0;
+                        bitCount = 0;
+                    } // End of full byte check
+
+                } // End of buffer processing
+
+            } // End of stream reading
+            throw new IOException("Payload terminator not found in video stream.");
+        } finally {
+            extractor.destroy(); // Ensure process is terminated
+        }
+
     }
 
     @Override
