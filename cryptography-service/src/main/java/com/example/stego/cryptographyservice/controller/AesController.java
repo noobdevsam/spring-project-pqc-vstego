@@ -7,14 +7,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -122,6 +120,37 @@ public class AesController {
                     .body(resource);
 
         } catch (IOException | IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Service-to-service endpoint for encrypting input streams directly.
+     * Used by other microservices for internal operations.
+     */
+    @PostMapping(value = "/encrypt-stream", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<InputStreamResource> encryptStream(
+            InputStream dataStream,
+            @RequestHeader("X-AES-Key") String base64AesKey) {
+
+        try {
+            // Decode the AES key
+            var keyBytes = Base64.getDecoder().decode(base64AesKey);
+            var aesKey = new SecretKeySpec(keyBytes, "AES");
+
+            // Encrypt the stream
+            var encryptedStream = cryptographyService.encryptData(dataStream, aesKey);
+
+            // Return encrypted stream
+            var resource = new InputStreamResource(encryptedStream);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(resource);
+
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
