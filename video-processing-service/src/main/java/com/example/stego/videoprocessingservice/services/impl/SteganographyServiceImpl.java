@@ -285,7 +285,7 @@ public class SteganographyServiceImpl implements SteganographyService {
         body.add("contentType", contentType);
         body.add("ownerUserId", ownerId);
 
-        Map<String, String> response = fileServiceRestClient.post()
+        var response = fileServiceRestClient.post()
                 .uri(FILE_SERVICE_UPLOAD_URI)
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(body)
