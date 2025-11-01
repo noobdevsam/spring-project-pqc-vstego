@@ -129,7 +129,21 @@ public class CryptographyServiceImpl implements CryptographyService {
 
     @Override
     public InputStream decryptData(InputStream encryptedData, SecretKey secretKey) {
-        return null;
+        try {
+            byte[] iv = new byte[GCM_IV_LENGTH];
+            var bytesRead = encryptedData.readNBytes(iv, 0, GCM_IV_LENGTH);
+            if (bytesRead < GCM_IV_LENGTH) {
+                throw new IllegalArgumentException("Invalid encrypted stream: missing IV.");
+            }
+
+            var gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
+            var cipher = Cipher.getInstance(AES_GCM_CIPHER, BouncyCastleProvider.PROVIDER_NAME);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmParameterSpec);
+
+            return new CipherInputStream(encryptedData, cipher);
+        } catch (Exception e) {
+            throw new RuntimeException("Error during AES decryption", e);
+        }
     }
 
 }
