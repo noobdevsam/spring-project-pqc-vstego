@@ -23,6 +23,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CryptographyServiceImpl implements CryptographyService {
 
+    private static final int AES_KEY_SIZE = 256;
+    private static final int GCM_IV_LENGTH = 12; // 96 bits
+    private static final int GCM_TAG_LENGTH = 128; // bits
+    private static final String AES_GCM_CIPHER = "AES/GCM/NoPadding";
+
     static {
         // Add the Bouncy Castle provider for traditional algorithms
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
