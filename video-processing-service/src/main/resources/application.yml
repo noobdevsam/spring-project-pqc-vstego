@@ -12,6 +12,17 @@ spring:
                 jwt:
                     jwk-set-uri: ${GATEWAY_SERVICE_HOST:localhost}:${GATEWAY_SERVICE_PORT:8080}/.well-known/jwks.json
 
+    kafka:
+        bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+        consumer:
+            group-id: video-processing-group
+            auto-offset-reset: earliest
+            properties:
+                spring.json.trusted.packages: '*'
+        producer:
+            properties:
+                spring.json.add.type.headers: false
+
 
 eureka:
     client:
