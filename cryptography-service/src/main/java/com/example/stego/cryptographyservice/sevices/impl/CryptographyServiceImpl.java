@@ -24,10 +24,11 @@ import java.util.Optional;
 public class CryptographyServiceImpl implements CryptographyService {
 
     static {
-        // Add the general Bouncy Castle provider for PQC algorithms
+        // Add the Bouncy Castle provider for traditional algorithms
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             Security.addProvider(new BouncyCastleProvider());
         }
+        // Add the Bouncy Castle PQC provider for post-quantum algorithms
         if (Security.getProvider(BouncyCastlePQCProvider.PROVIDER_NAME) == null) {
             Security.addProvider(new BouncyCastlePQCProvider());
         }
