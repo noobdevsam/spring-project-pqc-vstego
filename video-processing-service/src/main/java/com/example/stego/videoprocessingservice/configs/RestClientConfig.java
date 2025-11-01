@@ -24,11 +24,11 @@ public class RestClientConfig {
     }
 
     @Bean
-    public RestClient pqcServiceRestClient(
+    public RestClient cryptographyServiceRestClient(
             RestClient.Builder builder,
-            @Value("${services.pqc-service-url}") String pqcServiceUrl
+            @Value("${services.cryptography-service-url}") String cryptographyServiceUrl
     ) {
-        return builder.baseUrl(pqcServiceUrl).build();
+        return builder.baseUrl(cryptographyServiceUrl).build();
     }
 
 }

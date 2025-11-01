@@ -31,7 +31,7 @@ eureka:
 
 services:
     file-service-url: http://${FILE_SERVICE_HOST:file-service}
-    pqc-service-url: http://${PQC_SERVICE_HOST:pqc-service}
+    cryptography-service-url: http://${CRYPTOGRAPHY_SERVICE_HOST:cryptography-service}
 
 pqcstego:
     topics:
