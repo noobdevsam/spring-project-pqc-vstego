@@ -1,4 +1,4 @@
-package com.example.stego.videoprocessingservice;
+package com.example.stego.videoprocessingservice.model;
 
 public enum JobStatus {
     PENDING,
