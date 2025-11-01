@@ -13,9 +13,14 @@ import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
 import java.security.*;
 import java.util.Base64;
 import java.util.Optional;
@@ -45,12 +50,12 @@ public class CryptographyServiceImpl implements CryptographyService {
     @Override
     public KeyPairDTO generateKeys() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
         // Generate a key pair using a PQC algorithm
-        var kemGenerator = KeyPairGenerator.getInstance("Kyber", BouncyCastleProvider.PROVIDER_NAME);
+        var kemGenerator = KeyPairGenerator.getInstance("Kyber", BouncyCastlePQCProvider.PROVIDER_NAME);
         kemGenerator.initialize(KyberParameterSpec.kyber1024);
         var kemKeyPair = kemGenerator.generateKeyPair();
 
         // Generate Dilithium key pair
-        var dsaGenerator = KeyPairGenerator.getInstance("Dilithium", BouncyCastleProvider.PROVIDER_NAME);
+        var dsaGenerator = KeyPairGenerator.getInstance("Dilithium", BouncyCastlePQCProvider.PROVIDER_NAME);
         dsaGenerator.initialize(DilithiumParameterSpec.dilithium5);
         var dsaKeyPair = dsaGenerator.generateKeyPair();
 
@@ -105,7 +110,21 @@ public class CryptographyServiceImpl implements CryptographyService {
 
     @Override
     public InputStream encryptData(InputStream data, SecretKey secretKey) {
-        return null;
+        try {
+            byte[] iv = new byte[GCM_IV_LENGTH];
+            new SecureRandom().nextBytes(iv); // Generate a random IV
+            var gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv); // GCM tag length and IV
+
+            var cipher = Cipher.getInstance(AES_GCM_CIPHER, BouncyCastleProvider.PROVIDER_NAME);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, gcmParameterSpec);
+
+            var cipherInputStream = new CipherInputStream(data, cipher);
+            var ivInputStream = new ByteArrayInputStream(iv);
+
+            return new SequenceInputStream(ivInputStream, cipherInputStream);
+        } catch (Exception e) {
+            throw new RuntimeException("Error during AES encryption", e);
+        }
     }
 
     @Override
