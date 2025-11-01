@@ -1,9 +1,6 @@
 package com.example.stego.videoprocessingservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
 @NoArgsConstructor
@@ -14,6 +11,7 @@ public class KafkaEncodeRequest extends KafkaBaseRequest {
     private String recipientUserId;
     private String senderPrivateKey; // for signing
 
+    @Builder
     public KafkaEncodeRequest(
             String jobId,
             String inputFileGridFsId,
