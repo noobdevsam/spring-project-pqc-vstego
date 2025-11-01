@@ -86,4 +86,45 @@ public class AesController {
         }
     }
 
+    /**
+     * Decrypts a file stream using AES-256 GCM.
+     * Expects the input stream to have IV prepended to ciphertext.
+     */
+    @PostMapping("/decrypt")
+    public ResponseEntity<InputStreamResource> decryptFile(
+            @RequestParam("file") MultipartFile encryptedFile,
+            @RequestParam("aesKey") String base64AesKey) {
+
+        try {
+            // Decode the AES key
+            var keyBytes = Base64.getDecoder().decode(base64AesKey);
+            var aesKey = new SecretKeySpec(keyBytes, "AES");
+
+            // Get input stream from uploaded file
+            var encryptedStream = encryptedFile.getInputStream();
+
+            // Decrypt the stream
+            var decryptedStream = cryptographyService.decryptData(encryptedStream, aesKey);
+
+            // Prepare response
+            var resource = new InputStreamResource(decryptedStream);
+
+            var headers = new HttpHeaders();
+            var originalName = encryptedFile.getOriginalFilename();
+            var decryptedName = originalName != null && originalName.startsWith("encrypted_")
+                    ? originalName.substring(10)
+                    : "decrypted_" + originalName;
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + decryptedName);
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
+
+        } catch (IOException | IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }
